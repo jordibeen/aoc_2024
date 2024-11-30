@@ -1,0 +1,9 @@
+[package]
+version = "0.1.0"
+name = "aoc_2024"
+description = "advent of code 2024"
+author = "jordibeen"
+edition = "2021"
+
+[dependencies]
+regex = "1.11.1"
