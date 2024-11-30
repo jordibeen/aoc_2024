@@ -1,2 +1,1 @@
-# advent of code 2024
-![aoc-header-image](https://github.com/user-attachments/assets/117577e0-ae67-4403-b5f7-26f17ba1c888)
+![aoc-header-image](https://github.com/user-attachments/assets/7f2a9aac-60b6-47a8-96cb-d8ed0737b5b1)
