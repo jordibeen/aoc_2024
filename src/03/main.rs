@@ -25,39 +25,22 @@ fn pt1(input: &str) -> i32 {
 }
 
 fn pt2(input: &str) -> i32 {
-    let characters = input.chars().collect::<Vec<char>>();
-
     let mut enabled = true;
-    let enabled_s = characters
-        .iter()
-        .enumerate()
-        .filter_map(|(i, c)| {
-            if i < characters.len() - 7 {
-                let upcoming = characters[i..i + 7].iter().collect::<String>();
-
-                if upcoming == "don't()" {
-                    enabled = false;
-                };
-
-                if upcoming.starts_with("do()") {
-                    enabled = true;
-                };
-            }
-
-            if enabled {
-                Some(c)
-            } else {
-                None
-            }
-        })
-        .collect::<String>();
-
-    Regex::new(r"mul\((\d+),(\d+)\)")
+    Regex::new(r"don't\(\)|do\(\)|(mul\((\d+),(\d+)\))")
         .unwrap()
-        .captures_iter(&enabled_s)
+        .captures_iter(input)
         .map(|cap| {
-            cap.get(1).unwrap().as_str().parse::<i32>().unwrap()
-                * cap.get(2).unwrap().as_str().parse::<i32>().unwrap()
+            match cap.get(0).unwrap().as_str() {
+                "don't()" => enabled = false,
+                "do()" => enabled = true,
+                _ => {
+                    if enabled {
+                        return cap.get(2).unwrap().as_str().parse::<i32>().unwrap()
+                            * cap.get(3).unwrap().as_str().parse::<i32>().unwrap();
+                    }
+                }
+            }
+            0
         })
         .sum()
 }
