@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::time::Instant;
 
 fn main() {
@@ -50,12 +49,10 @@ fn pt1(mut blocks: Vec<Option<u32>>) -> u64 {
 }
 
 fn pt2(mut blocks: Vec<Option<u32>>) -> u64 {
-    let mut seen: HashSet<Option<u32>> = HashSet::new();
-
     let mut r = blocks.len() - 1;
     while r > 0 {
         let r_block = blocks[r];
-        if r_block.is_some() && !seen.contains(&r_block) {
+        if r_block.is_some() {
             let mut rr = r;
             while blocks[rr] == r_block && rr > 0 {
                 rr -= 1;
@@ -85,7 +82,6 @@ fn pt2(mut blocks: Vec<Option<u32>>) -> u64 {
 
                         break;
                     }
-                    seen.insert(r_block);
                     r = rr + 1;
                 }
                 l += 1;
