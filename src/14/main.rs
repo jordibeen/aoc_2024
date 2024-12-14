@@ -1,51 +1,43 @@
 use regex::Regex;
-use std::time::Instant;
 
 fn main() {
-    println!("--- Day 14: Restroom Redoubt ---");
-    let start: Instant = Instant::now();
-
     let input: &str = include_str!("./input.txt");
-    println!("pt1: {}", pt1(&input, (101, 103)));
-    println!("Execution time: {:.2?}", start.elapsed());
+    let (positions, velocities) = parse(&input);
+    pt2(&positions, &velocities);
+    println!("--- Day 14: Restroom Redoubt ---");
+    println!("pt2: see above :)");
+    println!("pt1: {}", pt1(&positions, &velocities, (101, 103)));
 }
 
-fn pt1(input: &str, size: (isize, isize)) -> i32 {
-    let (width, height) = size;
-    let final_positions: Vec<(isize, isize)> = input
+fn parse(input: &str) -> (Vec<(isize, isize)>, Vec<(isize, isize)>) {
+    input
         .lines()
-        .map(|line| {
+        .fold((vec![], vec![]), |(mut positions, mut velocities), line| {
             let digits: Vec<isize> = Regex::new(r"(-?\d+)")
                 .unwrap()
                 .captures_iter(line)
                 .map(|cap| cap.get(0).unwrap().as_str().parse::<isize>().unwrap())
                 .collect();
 
-            let position: (isize, isize) = (digits[0], digits[1]);
-            let velocity: (isize, isize) = (digits[2], digits[3]);
+            positions.push((digits[0], digits[1]));
+            velocities.push((digits[2], digits[3]));
 
-            let mut final_position = (
-                ((position.0 + velocity.0 * 100) % width),
-                ((position.1 + velocity.1 * 100) % height),
-            );
-
-            if final_position.0 < 0 {
-                final_position.0 = width + final_position.0;
-            }
-
-            if final_position.1 < 0 {
-                final_position.1 = height + final_position.1;
-            }
-
-            final_position
+            (positions, velocities)
         })
-        .collect();
+}
+
+fn pt1(
+    positions: &Vec<(isize, isize)>,
+    velocities: &Vec<(isize, isize)>,
+    size: (isize, isize),
+) -> i32 {
+    let final_positions: Vec<(isize, isize)> = simulate(&positions, &velocities, size, 100);
 
     [
-        (0, width / 2, 0, height / 2),
-        (width / 2 + 1, width, 0, height / 2),
-        (0, width / 2, height / 2 + 1, height),
-        (width / 2 + 1, width, height / 2 + 1, height),
+        (0, size.0 / 2, 0, size.1 / 2),
+        (size.0 / 2 + 1, size.0, 0, size.1 / 2),
+        (0, size.0 / 2, size.1 / 2 + 1, size.1),
+        (size.0 / 2 + 1, size.0, size.1 / 2 + 1, size.1),
     ]
     .iter()
     .map(|quadrant| {
@@ -60,6 +52,55 @@ fn pt1(input: &str, size: (isize, isize)) -> i32 {
     .product::<i32>()
 }
 
+fn pt2(positions: &Vec<(isize, isize)>, velocities: &Vec<(isize, isize)>) {
+    let (width, height) = (101_isize, 103_isize);
+
+    // Starting simulation at 8200 to avoid the long wait ;)
+    (8200..8271).for_each(|seconds| {
+        println!("=========== {} ==========", seconds);
+        let final_positions = simulate(&positions, &velocities, (101, 103), seconds);
+
+        (0..height).for_each(|y| {
+            (0..width).for_each(|x| {
+                if final_positions.contains(&(y, x)) {
+                    print!("#")
+                } else {
+                    print!(".")
+                }
+            });
+            println!()
+        });
+    });
+}
+
+fn simulate(
+    positions: &Vec<(isize, isize)>,
+    velocities: &Vec<(isize, isize)>,
+    size: (isize, isize),
+    seconds: i32,
+) -> Vec<(isize, isize)> {
+    positions
+        .iter()
+        .enumerate()
+        .map(|(i, pos)| {
+            let mut new_pos = (
+                ((pos.0 + velocities[i].0 * seconds as isize) % size.0),
+                ((pos.1 + velocities[i].1 * seconds as isize) % size.1),
+            );
+
+            if new_pos.0 < 0 {
+                new_pos.0 = size.0 + new_pos.0;
+            }
+
+            if new_pos.1 < 0 {
+                new_pos.1 = size.1 + new_pos.1;
+            }
+
+            new_pos
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -67,7 +108,8 @@ mod tests {
     #[test]
     fn pt1_test() {
         let input = include_str!("./example.txt");
-        let result = pt1(&input, (11, 7));
+        let (positions, velocities) = parse(&input);
+        let result = pt1(&positions, &velocities, (11, 7));
         assert_eq!(result, 12);
     }
 }
