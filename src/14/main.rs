@@ -53,15 +53,15 @@ fn pt1(
 }
 
 fn pt2(positions: &Vec<(isize, isize)>, velocities: &Vec<(isize, isize)>) {
-    let (width, height) = (101_isize, 103_isize);
+    let size = (101, 103);
 
     // Starting simulation at 8200 to avoid the long wait ;)
     (8200..8271).for_each(|seconds| {
         println!("=========== {} ==========", seconds);
-        let final_positions = simulate(&positions, &velocities, (101, 103), seconds);
+        let final_positions = simulate(&positions, &velocities, size, seconds);
 
-        (0..height).for_each(|y| {
-            (0..width).for_each(|x| {
+        (0..size.1).for_each(|y| {
+            (0..size.0).for_each(|x| {
                 if final_positions.contains(&(y, x)) {
                     print!("#")
                 } else {
