@@ -62,7 +62,7 @@ fn pt2(positions: &Vec<(isize, isize)>, velocities: &Vec<(isize, isize)>) {
 
         (0..size.1).for_each(|y| {
             (0..size.0).for_each(|x| {
-                if final_positions.contains(&(y, x)) {
+                if final_positions.contains(&(x, y)) {
                     print!("#")
                 } else {
                     print!(".")
