@@ -100,7 +100,7 @@ fn pt2(input: &str) -> i32 {
         .map(|(l, r)| {
             let grid: Vec<Vec<char>> = l
                 .lines()
-                .map(|row| row.chars().enumerate().map(|(x, c)| c).collect())
+                .map(|row| row.chars().map(|c| c).collect())
                 .collect();
 
             let moves: Vec<(isize, isize)> = r
