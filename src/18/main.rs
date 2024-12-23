@@ -28,25 +28,44 @@ fn main() {
     let start: Instant = Instant::now();
 
     let input: &str = include_str!("./input.txt");
-    println!("pt1: {}", pt1(&input, 70, 1024));
+    let bytes = parse(input);
+    println!("pt1: {}", pt1(&bytes, 70, 1024));
+    println!("pt1: {}", pt2(bytes, 70));
     println!("Execution time: {:.2?}", start.elapsed());
 }
 
-fn pt1(input: &str, size: isize, byte_amount: usize) -> i32 {
-    let bytes: Vec<Position> = input
+fn parse(input: &str) -> Vec<Position> {
+    input
         .lines()
         .map(|row| {
             row.split_once(",")
                 .map(|(x, y)| (x.parse::<isize>().unwrap(), y.parse::<isize>().unwrap()))
                 .unwrap()
         })
-        .collect();
+        .collect()
+}
 
+fn pt1(bytes: &Vec<Position>, size: isize, byte_amount: usize) -> i32 {
     let corrupted: Vec<Position> = bytes[0..byte_amount].iter().copied().collect();
     let (start, end): (Position, Position) = ((0, 0), (size, size));
     let steps = dijkstra(&corrupted, size, start);
 
     *steps.get(&end).unwrap()
+}
+
+fn pt2(mut bytes: Vec<Position>, size: isize) -> String {
+    let (start, end): (Position, Position) = ((0, 0), (size, size));
+
+    let mut blocking_byte;
+    loop {
+        blocking_byte = bytes.pop();
+        let steps = dijkstra(&bytes, size, start);
+        if steps.get(&end).is_some() {
+            break;
+        }
+    }
+
+    format!("{},{}", blocking_byte.unwrap().0, blocking_byte.unwrap().1)
 }
 
 fn dijkstra(corrupted: &Vec<Position>, size: isize, start: Position) -> HashMap<Position, i32> {
@@ -86,7 +105,16 @@ mod tests {
     #[test]
     fn pt1_test() {
         let input = include_str!("./example.txt");
-        let result = pt1(&input, 6, 12);
+        let bytes = parse(input);
+        let result = pt1(&bytes, 6, 12);
         assert_eq!(result, 22);
+    }
+
+    #[test]
+    fn pt2_test() {
+        let input = include_str!("./example.txt");
+        let bytes = parse(input);
+        let result = pt2(bytes, 6);
+        assert_eq!(result, "6,1".to_string());
     }
 }
