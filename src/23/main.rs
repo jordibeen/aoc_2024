@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::time::Instant;
 
 fn main() {
@@ -6,13 +6,13 @@ fn main() {
     let start: Instant = Instant::now();
 
     let input: &str = include_str!("./input.txt");
-    println!("pt1: {}", pt1(&input));
+    let connections = parse(&input);
+    println!("pt1: {}", pt1(&connections));
+    println!("pt2: {}", pt2(&connections));
     println!("Execution time: {:.2?}", start.elapsed());
 }
-
-fn pt1(input: &str) -> i32 {
-    let mut connections: HashMap<String, Vec<String>> = HashMap::new();
-    input.lines().for_each(|line| {
+fn parse(input: &str) -> HashMap<String, Vec<String>> {
+    input.lines().fold(HashMap::new(), |mut connections, line| {
         let (l, r) = line.split_once("-").unwrap();
         connections
             .entry(l.to_string())
@@ -22,8 +22,11 @@ fn pt1(input: &str) -> i32 {
             .entry(r.to_string())
             .and_modify(|v| v.push(l.to_string()))
             .or_insert(vec![l.to_string()]);
-    });
+        connections
+    })
+}
 
+fn pt1(connections: &HashMap<String, Vec<String>>) -> i32 {
     let mut interconnected: HashSet<Vec<String>> = HashSet::new();
     connections.iter().for_each(|(conn_1, conns_1)| {
         conns_1.iter().for_each(|conn_2| {
@@ -32,13 +35,13 @@ fn pt1(input: &str) -> i32 {
                     if let Some(conns_3) = connections.get(conn_3) {
                         conns_3.iter().for_each(|conn_4| {
                             if conn_4 == conn_1 {
-                                let mut v = vec![
+                                let mut network = vec![
                                     conn_1.to_string(),
                                     conn_2.to_string(),
                                     conn_3.to_string(),
                                 ];
-                                v.sort();
-                                interconnected.insert(v);
+                                network.sort();
+                                interconnected.insert(network);
                             }
                         });
                     }
@@ -53,6 +56,43 @@ fn pt1(input: &str) -> i32 {
         .count() as i32
 }
 
+fn pt2(connections: &HashMap<String, Vec<String>>) -> String {
+    let mut queue: VecDeque<Vec<String>> =
+        VecDeque::from_iter(connections.keys().map(|v| vec![v.to_string()]));
+    let mut seen: HashSet<Vec<String>> = HashSet::new();
+
+    while let Some(network) = queue.pop_front() {
+        let mut computers = network.clone();
+        network.iter().for_each(|conn_1| {
+            if let Some(conns_1) = connections.get(conn_1) {
+                conns_1.iter().for_each(|conn_2| {
+                    if let Some(conns_2) = connections.get(conn_2) {
+                        if computers.iter().all(|computer| conns_2.contains(computer)) {
+                            computers.push(conn_2.to_string());
+                            computers.sort();
+                            if !seen.contains(&computers) {
+                                seen.insert(computers.clone());
+                                queue.push_back(computers.clone());
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    let biggest_network = seen.iter().fold(vec![], |biggest, network| {
+        if network.len() > biggest.len() {
+            network.to_owned()
+        } else {
+            biggest
+        }
+    });
+
+    biggest_network.join(",")
+}
+
+#[cfg(test)]
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -60,7 +100,16 @@ mod tests {
     #[test]
     fn pt1_test() {
         let input = include_str!("./example.txt");
-        let result = pt1(&input);
+        let connections = parse(&input);
+        let result = pt1(&connections);
         assert_eq!(result, 7);
+    }
+
+    #[test]
+    fn pt2_test() {
+        let input = include_str!("./example.txt");
+        let connections = parse(&input);
+        let result = pt2(&connections);
+        assert_eq!(result, "co,de,ka,ta".to_string());
     }
 }
